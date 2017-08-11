@@ -1,5 +1,6 @@
 window._globals = {
   movements: [],
+  sets: [],
 }; // look into recording and redrawing things...
 
 window.addEventListener('load', function () {
@@ -30,6 +31,7 @@ window.addEventListener('load', function () {
     var position = { x: 0, y: 0 };
     var last_position = position;
     var movement = null;
+    var set = [];
 
     var createMovement = function (start, end) {
       return {
@@ -50,10 +52,13 @@ window.addEventListener('load', function () {
       };
     };
 
-    var drawLine = function (context, movement) {
+    var drawLine = function (context, movement, stroke = true) {
       context.moveTo(movement.start.x, movement.start.y);
       context.lineTo(movement.end.x, movement.end.y);
-      context.stroke();
+
+      if (stroke) {
+        context.stroke();
+      }
     };
 
     canvas.addEventListener('mousedown', function (e) {
@@ -67,10 +72,32 @@ window.addEventListener('load', function () {
 
     canvas.addEventListener('mouseup', function (e) {
       drawing = false;
+      window._globals.sets.push(set);
+      set = [];
+    });
+
+    var clearCanvas = function () {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.beginPath();
+    };
+
+    document.getElementById('undo').addEventListener('click', function (e) {
+      var last_set = window._globals.sets.pop();
+
+      clearCanvas();
+
+      window._globals.sets.forEach(function (set) {
+        set.forEach(function (movement) {
+          drawLine(context, movement, false);
+        });
+      });
+
+      context.stroke();
     });
 
     var pushMovement = function (movement) {
       window._globals.movements.push(movement);
+      set.push(movement);
       peer1.send(JSON.stringify(movement));
     };
 
