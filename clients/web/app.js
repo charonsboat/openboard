@@ -58,6 +58,7 @@ window.addEventListener('load', function () {
 
       if (stroke) {
         context.stroke();
+        context.beginPath();
       }
     };
 
@@ -144,6 +145,7 @@ window.addEventListener('load', function () {
     context.moveTo(movement.start.x, movement.start.y);
     context.lineTo(movement.end.x, movement.end.y);
     context.stroke();
+    context.beginPath();
   };
 
   peer2.on('data', function (data) {
