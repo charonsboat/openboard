@@ -112,9 +112,16 @@ window.addEventListener('load', function () {
 
   var collection = [];
   var is_drawing = false;
+  var is_panning = false;
+  var pan_mode = false;
 
   canvas.addEventListener('mousedown', function (e) {
-    is_drawing = true;
+    if (!pan_mode) {
+      is_drawing = true;
+    } else {
+      is_panning = true;
+    }
+
     last_position = {
       x: e.clientX - bounding.left,
       y: e.clientY - bounding.top,
@@ -129,9 +136,13 @@ window.addEventListener('load', function () {
   });
 
   canvas.addEventListener('mouseup', function (e) {
-    is_drawing = false;
-    virtual.state.collections.current.push(collection);
-    collection = [];
+    if (!pan_mode) {
+      is_drawing = false;
+      virtual.state.collections.current.push(collection);
+      collection = [];
+    } else {
+      is_panning = false;
+    }
   });
 
   (function run() {
@@ -144,6 +155,16 @@ window.addEventListener('load', function () {
       };
       collection.push(virtual_interface.lineToVirtual(line));
       renderer.drawLine(line);
+      last_position = position;
+    } else if (is_panning) {
+      var line = {
+        start: last_position,
+        end: position,
+      };
+      virtual_interface.offset.x -= (line.start.x - line.end.x);
+      virtual_interface.offset.y -= (line.start.y - line.end.y);
+      renderer.clearCanvas();
+      virtual_interface.drawVirtual();
       last_position = position;
     }
 
@@ -160,6 +181,10 @@ window.addEventListener('load', function () {
     renderer.clearCanvas();
     virtual_interface.offset.x += 10;
     virtual_interface.drawVirtual();
+  });
+
+  document.getElementById('toggle-pan').addEventListener('click', function () {
+    pan_mode = !pan_mode;
   });
 
   // peer stuff
